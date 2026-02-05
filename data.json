@@ -20,7 +20,7 @@
   "channels": [
     { "category": "bein_sports", "name": "beIN SPORTS 1", "logo": "bein/bein1.png", "url": "https://static-cse.canva.com/video/914576/stock-videos.mp4" },
     { "category": "bein_sports", "name": "beIN SPORTS 2", "logo": "bein/bein2.png", "url": "http://app.upsdo.me:8080/live/PCCQTZPXVCEG/041212071179/93914.ts" },
-    { "category": "bein_sports", "name": "beIN SPORTS 3", "logo": "bein/bein3.png", "url": "https://example.com/bein3" },
+    { "category": "bein_sports", "name": "beIN SPORTS 3", "logo": "bein/bein3.png", "url": "video.mp4" },
     { "category": "bein_sports", "name": "beIN SPORTS 4", "logo": "bein/bein4.png", "url": "https://example.com/bein4" },
     { "category": "bein_sports", "name": "beIN SPORTS 5", "logo": "bein/bein5.png", "url": "https://example.com/bein5" },
     { "category": "bein_sports", "name": "beIN SPORTS 6", "logo": "bein/bein6.png", "url": "https://example.com/bein6" },

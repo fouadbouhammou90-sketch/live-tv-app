@@ -2,62 +2,40 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Premium IPTV Bypass</title>
+    <title>IPTV Smarters Web Emulator</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; text-align: center; }
-        video { width: 100vw; height: 100vh; background: #000; }
-        #status { position: absolute; top: 10px; left: 10px; font-size: 12px; color: #00ff00; background: rgba(0,0,0,0.5); padding: 5px; }
+        body { margin: 0; background: #000; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        video { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
-    <div id="status">جاري فك حماية السيرفر المدفوع...</div>
     <video id="video" controls autoplay playsinline></video>
 
     <script>
         const video = document.getElementById('video');
-        const status = document.getElementById('status');
-        
-        // رابط الـ Worker الخاص بك
+        // رابط الـ Worker الخاص بك الذي يحاكي التطبيق
         const proxy = "https://red-snowflake-3bb2.bouhammouamira.workers.dev/?url=";
 
-        function start() {
+        function play() {
             const params = new URLSearchParams(window.location.search);
-            let rawUrl = params.get('url');
-            if (!rawUrl) return;
+            let rawUrl = params.get('url') ? atob(params.get('url')) : '';
 
-            // محاولة فك Base64 إذا كان الرابط مشفراً
-            try { rawUrl = atob(rawUrl); } catch(e) { }
+            if (rawUrl) {
+                // نمرر الرابط عبر الـ Worker المتخفي
+                const finalUrl = proxy + encodeURIComponent(rawUrl);
 
-            const finalUrl = proxy + encodeURIComponent(rawUrl);
-
-            if (Hls.isSupported()) {
-                const hls = new Hls({
-                    xhrSetup: function(xhr) {
-                        xhr.withCredentials = false;
-                    },
-                    // إعدادات لروابط TS الثقيلة
-                    maxBufferSize: 60 * 1000 * 1000,
-                    maxBufferLength: 30
-                });
-
-                hls.loadSource(finalUrl);
-                hls.attachMedia(video);
-
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    status.innerText = "تم فك الحماية بنجاح - جارِ البث";
-                    video.play();
-                });
-
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        status.innerText = "خطأ: السيرفر يرفض الاتصال. قد يكون الـ IP محظوراً.";
-                        console.error(data);
-                    }
-                });
+                if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(finalUrl);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                } else {
+                    video.src = finalUrl;
+                }
             }
         }
-        start();
+        play();
     </script>
 </body>
 </html>

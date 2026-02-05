@@ -3,154 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ultra Stream Player Pro</title>
+    <title>Gemini Ultra Player</title>
     
-    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
-    <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls/dist/videojs-contrib-hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --main-color: #00d2ff; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
+        .p-box { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: contain; }
         
-        /* جعل المشغل يملأ الشاشة بالكامل */
-        .video-js { width: 100% !important; height: 100% !important; }
-        
-        /* تصميم واجهة التحكم المخصصة */
-        .custom-ui {
-            position: absolute; inset: 0; z-index: 10;
-            display: flex; flex-direction: column; justify-content: space-between;
-            background: rgba(0,0,0,0.3); opacity: 0; transition: 0.3s;
-        }
-        .active-ui .custom-ui { opacity: 1; }
+        .loader { position: absolute; width: 50px; height: 50px; border: 4px solid #333; border-top-color: #00d2ff; border-radius: 50%; animation: spin 1s infinite linear; z-index: 10; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .mid-controls {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            display: flex; align-items: center; gap: 40px;
-        }
-        .btn-play { font-size: 5rem; color: var(--main-color); cursor: pointer; border: none; background: none; }
-        
-        .top-bar { padding: 20px; display: flex; justify-content: space-between; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
-        .bottom-bar { padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
-
-        /* لودر التحميل */
-        .vjs-loading-spinner { border-radius: 50% !important; border: 5px solid var(--main-color) !important; border-top-color: transparent !important; }
-        
-        /* وضع الزووم لملء الشاشة */
-        video { object-fit: contain; }
-        .vjs-fill video { object-fit: fill !important; }
-        .vjs-cover video { object-fit: cover !important; }
+        .ui { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0,0,0,0.4); opacity: 0; transition: 0.3s; }
+        .active-ui .ui { opacity: 1; }
+        .controls { padding: 20px; display: flex; justify-content: center; gap: 40px; }
+        .btn { background: none; border: none; color: white; font-size: 2.5rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="wrapper" class="active-ui" style="width: 100%; height: 100%;">
-    <video id="my-video" class="video-js vjs-big-play-centered" playsinline></video>
+    <div class="p-box" id="pBox">
+        <div class="loader" id="loading"></div>
+        <video id="v" playsinline crossorigin="anonymous" autoplay></video>
 
-    <div class="custom-ui">
-        <div class="top-bar">
-            <div onclick="history.back()"><i class="fas fa-arrow-right"></i> <span id="title">بث مباشر</span></div>
-            <div id="clock">00:00</div>
-        </div>
+        <div class="ui">
+            <div style="padding: 20px; text-align: center; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);">
+                قناة مدفوعة مشفرة - Xtream Line
+            </div>
+            
+            <div class="controls">
+                <button class="btn" onclick="v.currentTime -= 10"><i class="fas fa-undo"></i></button>
+                <button class="btn" style="font-size: 4rem;" onclick="toggleP()"><i id="pIcon" class="fas fa-pause"></i></button>
+                <button class="btn" onclick="v.currentTime += 10"><i class="fas fa-redo"></i></button>
+            </div>
 
-        <div class="mid-controls">
-            <button class="btn-play" id="mainPlayBtn" onclick="togglePlay()"><i class="fas fa-pause"></i></button>
-        </div>
-
-        <div class="bottom-bar">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <button class="btn-play" style="font-size: 1.5rem; color: white;" onclick="cycleRatio()"><i class="fas fa-expand-arrows-alt"></i></button>
-                </div>
-                <div>
-                    <button class="btn-play" style="font-size: 1.5rem; color: white;" onclick="toggleFull()"><i class="fas fa-expand"></i></button>
-                </div>
+            <div style="padding: 20px; display: flex; justify-content: space-around;">
+                <button class="btn" style="font-size: 1.2rem;" onclick="v.style.objectFit='fill'">ملء الشاشة <i class="fas fa-expand"></i></button>
+                <button class="btn" style="font-size: 1.2rem;" onclick="location.reload()">تحديث <i class="fas fa-sync"></i></button>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    const player = videojs('my-video', {
-        autoplay: true,
-        controls: false, // نستخدم واجهتنا الخاصة
-        fluid: false,
-        html5: {
-            hls: { overrideNative: true },
-            nativeAudioTracks: false,
-            nativeVideoTracks: false
-        }
-    });
-
-    function init() {
-        const params = new URLSearchParams(window.location.search);
-        let url = params.get('url') ? atob(params.get('url')) : "";
-        document.getElementById('title').innerText = params.get('name') || "بث مباشر";
-
-        if (!url) return;
-
-        // الحل لروابط HTTP وحماية CORS على GitHub:
-        // نستخدم بروكسي "allorigins" أو "corsproxy.io" لدمج الـ User-Agent وتخطي الحماية
-        let finalUrl = url;
+    <script>
+        const v = document.getElementById('v');
+        const pBox = document.getElementById('pBox');
         
-        // إذا كان الرابط يبدأ بـ http، نقوم بتمريره عبر بروكسي https ليعمل على GitHub
-        if (url.startsWith('http://')) {
-            finalUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+        // هام جداً: ضع هنا رابط الـ Cloudflare Worker الذي أنشأته
+        const myProxy = "https://red-snowflake-3bb2.bouhammouamira.workers.dev/?url=";
+
+        function playNow() {
+            const params = new URLSearchParams(window.location.search);
+            let targetUrl = params.get('url') ? atob(params.get('url')) : '';
+            
+            if (!targetUrl) return;
+
+            // تمرير الرابط عبر البروكسي الخاص بك لكسر التشفير
+            const finalUrl = myProxy + encodeURIComponent(targetUrl);
+
+            if (Hls.isSupported()) {
+                const hls = new Hls({
+                    xhrSetup: (xhr) => {
+                        // هنا يتم إرسال الهوية التي تجعل السيرفر يفتح البث
+                        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                    }
+                });
+                hls.loadSource(finalUrl);
+                hls.attachMedia(v);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    document.getElementById('loading').style.display = 'none';
+                    v.play();
+                });
+            } else {
+                v.src = finalUrl;
+            }
         }
 
-        player.src({
-            src: finalUrl,
-            type: url.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
-        });
-
-        player.play();
-    }
-
-    // تبديل أبعاد الشاشة (Zoom/Stretch/Fit)
-    function cycleRatio() {
-        const v = document.querySelector('video');
-        if (v.style.objectFit === 'contain' || !v.style.objectFit) {
-            v.style.objectFit = 'fill';
-        } else if (v.style.objectFit === 'fill') {
-            v.style.objectFit = 'cover';
-        } else {
-            v.style.objectFit = 'contain';
+        function toggleP() {
+            if (v.paused) { v.play(); document.getElementById('pIcon').className = 'fas fa-pause'; }
+            else { v.pause(); document.getElementById('pIcon').className = 'fas fa-play'; }
         }
-    }
 
-    function togglePlay() {
-        if (player.paused()) {
-            player.play();
-            document.getElementById('mainPlayBtn').innerHTML = '<i class="fas fa-pause"></i>';
-        } else {
-            player.pause();
-            document.getElementById('mainPlayBtn').innerHTML = '<i class="fas fa-play"></i>';
-        }
-    }
+        pBox.onclick = () => pBox.classList.toggle('active-ui');
 
-    function toggleFull() {
-        if (!player.isFullscreen()) {
-            player.requestFullscreen();
-        } else {
-            player.exitFullscreen();
-        }
-    }
-
-    // إظهار/إخفاء الواجهة عند اللمس
-    document.getElementById('wrapper').onclick = function(e) {
-        if (e.target.tagName === 'VIDEO' || e.target.id === 'wrapper') {
-            this.classList.toggle('active-ui');
-        }
-    };
-
-    // تحديث الساعة
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-    }, 1000);
-
-    init();
-</script>
+        playNow();
+        pBox.classList.add('active-ui');
+    </script>
 </body>
 </html>

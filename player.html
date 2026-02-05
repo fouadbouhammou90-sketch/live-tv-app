@@ -2,40 +2,58 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>IPTV Smarters Web Emulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Player Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; background: #000; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        video { width: 100%; height: 100%; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        #loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: sans-serif; z-index: 10; }
     </style>
 </head>
 <body>
+    <div id="loader">جاري جلب البث الآمن...</div>
     <video id="video" controls autoplay playsinline></video>
 
     <script>
         const video = document.getElementById('video');
-        // رابط الـ Worker الخاص بك الذي يحاكي التطبيق
-        const proxy = "https://red-snowflake-3bb2.bouhammouamira.workers.dev/?url=";
+        const loader = document.getElementById('loader');
 
-        function play() {
+        // رابط الـ Worker الخاص بك الذي صنعناه في Cloudflare
+        const myProxy = "https://red-snowflake-3bb2.bouhammouamira.workers.dev/?url=";
+
+        function init() {
             const params = new URLSearchParams(window.location.search);
             let rawUrl = params.get('url') ? atob(params.get('url')) : '';
 
             if (rawUrl) {
-                // نمرر الرابط عبر الـ Worker المتخفي
-                const finalUrl = proxy + encodeURIComponent(rawUrl);
+                // دمج الرابط بالبروكسي لكسر حماية السيرفر المدفوع
+                const finalUrl = myProxy + encodeURIComponent(rawUrl);
 
                 if (Hls.isSupported()) {
-                    const hls = new Hls();
+                    const hls = new Hls({
+                        xhrSetup: function(xhr) {
+                            // محاكاة هوية الأندرويد تماماً كما في AppCreator24
+                            xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Mobile Safari/537.36');
+                            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                        }
+                    });
                     hls.loadSource(finalUrl);
                     hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        loader.style.display = 'none';
+                        video.play();
+                    });
+                    hls.on(Hls.Events.ERROR, () => {
+                        loader.innerText = "حدث خطأ في جلب القناة، تأكد من صلاحية الرابط.";
+                    });
                 } else {
+                    // للأجهزة التي تدعم البث مباشرة (مثل iPhone)
                     video.src = finalUrl;
                 }
             }
         }
-        play();
+        init();
     </script>
 </body>
 </html>

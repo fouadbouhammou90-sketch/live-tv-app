@@ -112,10 +112,10 @@
             }).join('');
         }
 
-        // الوظيفة الأساسية للتحويل للمشغل
+        // الوظيفة الأساسية المعدلة لفتح الرابط مباشرة
         function goToPlayer(url, name) {
-            const encodedUrl = btoa(url); // تشفير الرابط للحماية الأساسية
-            window.location.href = `player.html?url=${encodedUrl}&name=${encodeURIComponent(name)}`;
+            // هنا يتم توجيه المتصفح للرابط مباشرة لفتحه بالمشغل الخارجي للمنصة
+            window.location.href = url;
         }
 
         function showMatches() {

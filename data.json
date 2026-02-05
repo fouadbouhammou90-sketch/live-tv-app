@@ -32,7 +32,7 @@
     { "category": "bein_sports", "name": "beIN 4K", "logo": "bein/bein4k.png", "url": "https://example.com/bein4k" },
     
     { "category": "maroc_channels", "name": "Al Aoula HD", "logo": "maroc/1m.png", "url": "http://example.com/live1.m3u8" },
-    { "category": "maroc_channels", "name": "2M Maroc", "logo": "maroc/2m.png", "url": "http://185.223.214.11/live/play/TlZJdmMzVXlZM1ZqYkhWaVZrdHlLMjFWZG1kSVRHeHhVMFl4UnpCYU0yMUxTSHBhZVZKRmVFZHVjejA9/8192" },
+    { "category": "maroc_channels", "name": "2M Maroc", "logo": "maroc/2m.png", "url": "https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8" },
     { "category": "maroc_channels", "name": "Arryadia HD", "logo": "maroc/3m.png", "url": "https://example.com/arryadia" },
     { "category": "maroc_channels", "name": "Athaqafia HD", "logo": "maroc/4m.png", "url": "https://example.com/athaqafia" },
     { "category": "maroc_channels", "name": "Al Maghribia HD", "logo": "maroc/5m.png", "url": "https://example.com/al-maghribia" },

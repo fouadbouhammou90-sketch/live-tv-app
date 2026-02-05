@@ -2,92 +2,52 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>beIN SPORTS Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Player</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
-        .player-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        body { margin: 0; background: #000; height: 100vh; display: flex; align-items: center; }
         video { width: 100%; height: 100%; object-fit: contain; }
-        .loader { position: absolute; width: 50px; height: 50px; border: 5px solid #333; border-top-color: #00d2ff; border-radius: 50%; animation: spin 1s infinite linear; z-index: 10; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .ui { position: absolute; inset: 0; z-index: 20; background: rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; opacity: 0; transition: 0.3s; }
-        .active-ui .ui { opacity: 1; }
-        .btn { background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+        #msg { position: absolute; top: 50%; width: 100%; text-align: center; color: white; font-family: sans-serif; display: none; }
     </style>
 </head>
 <body>
+    <div id="msg">جاري كسر حماية الرابط...</div>
+    <video id="v" controls autoplay playsinline></video>
 
-<div class="player-wrapper" id="pBox">
-    <div class="loader" id="loading"></div>
-    <video id="video" playsinline crossorigin="anonymous" autoplay></video>
+    <script>
+        const v = document.getElementById('v');
+        const msg = document.getElementById('msg');
 
-    <div class="ui">
-        <header style="padding: 20px; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); text-align: right;">
-            <button class="btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
-            <span id="vTitle" style="margin-right: 15px;">beIN SPORTS 2</span>
-        </header>
-        
-        <div style="display: flex; justify-content: center; gap: 50px;">
-            <button class="btn" style="font-size: 4rem;" onclick="togglePlay()"><i id="pIcon" class="fas fa-pause"></i></button>
-        </div>
+        // ارفع رابط الـ Worker الخاص بك هنا
+        const myProxy = "https://ضع_رابط_الـ_worker_هنا.workers.dev/?url=";
 
-        <footer style="padding: 20px; display: flex; justify-content: space-between; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-            <button class="btn" style="font-size: 1.2rem;" onclick="video.requestFullscreen()">ملء الشاشة <i class="fas fa-expand"></i></button>
-            <button class="btn" style="font-size: 1.2rem;" onclick="location.reload()">تحديث <i class="fas fa-sync"></i></button>
-        </footer>
-    </div>
-</div>
+        function start() {
+            const params = new URLSearchParams(window.location.search);
+            let rawUrl = params.get('url') ? atob(params.get('url')) : '';
 
-<script>
-    const video = document.getElementById('video');
-    const pBox = document.getElementById('pBox');
-    const loading = document.getElementById('loading');
+            if (rawUrl) {
+                msg.style.display = 'block';
+                // دمج الرابط المدفوع مع البروكسي الخاص بك
+                const finalUrl = myProxy + encodeURIComponent(rawUrl);
 
-    function init() {
-        const params = new URLSearchParams(window.location.search);
-        let rawUrl = params.get('url') ? atob(params.get('url')) : '';
-        document.getElementById('vTitle').innerText = params.get('name') || 'البث المباشر';
-
-        if (!rawUrl) return;
-
-        // الحل السحري لتجاوز حظر GitHub (تحويل HTTP إلى HTTPS وفك الحماية)
-        // هذا البروكسي سيقوم بإضافة User-Agent الأندرويد تلقائياً لسيرفر beIN
-        const finalUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawUrl);
-
-        if (Hls.isSupported()) {
-            const hls = new Hls({
-                enableWorker: true,
-                lowLatencyMode: true,
-                backBufferLength: 90
-            });
-            hls.loadSource(finalUrl);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                loading.style.display = 'none';
-                video.play().catch(() => pBox.classList.add('active-ui'));
-            });
-            
-            // في حال فشل البروكسي الأول، نجرب بروكسي بديل تلقائياً
-            hls.on(Hls.Events.ERROR, (event, data) => {
-                if (data.details === 'manifestLoadError') {
-                    hls.loadSource("https://corsproxy.io/?" + encodeURIComponent(rawUrl));
+                if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(finalUrl);
+                    hls.attachMedia(v);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        msg.style.display = 'none';
+                        v.play();
+                    });
+                    hls.on(Hls.Events.ERROR, () => {
+                        msg.innerText = "خطأ: السيرفر المدفوع يرفض الاتصال، تأكد من الـ Worker";
+                    });
+                } else {
+                    v.src = finalUrl;
                 }
-            });
-        } else {
-            video.src = finalUrl;
+            }
         }
-    }
-
-    function togglePlay() {
-        if (video.paused) { video.play(); document.getElementById('pIcon').className = 'fas fa-pause'; }
-        else { video.pause(); document.getElementById('pIcon').className = 'fas fa-play'; }
-    }
-
-    pBox.onclick = (e) => { if(e.target.tagName !== 'BUTTON') pBox.classList.toggle('active-ui'); };
-
-    init();
-</script>
+        start();
+    </script>
 </body>
 </html>

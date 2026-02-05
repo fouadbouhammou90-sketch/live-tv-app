@@ -1,53 +1,79 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المشغل الذكي المحمي</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { margin: 0; background: #000; height: 100vh; display: flex; align-items: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
+        .player-container { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: contain; }
-        #msg { position: absolute; top: 50%; width: 100%; text-align: center; color: white; font-family: sans-serif; display: none; }
+        .loader { position: absolute; width: 50px; height: 50px; border: 5px solid #333; border-top-color: #00d2ff; border-radius: 50%; animation: spin 1s infinite linear; z-index: 10; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-msg { position: absolute; bottom: 20%; color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 10px; font-size: 14px; z-index: 20; }
     </style>
 </head>
 <body>
-    <div id="msg">جاري كسر حماية الرابط...</div>
-    <video id="v" controls autoplay playsinline></video>
 
-    <script>
-        const v = document.getElementById('v');
-        const msg = document.getElementById('msg');
+<div class="player-container">
+    <div class="loader" id="loading"></div>
+    <div id="status" class="status-msg">جاري الاتصال بالمحرك الخاص بك وفك التشفير...</div>
+    <video id="video" playsinline controls autoplay crossorigin="anonymous"></video>
+</div>
 
-        // ارفع رابط الـ Worker الخاص بك هنا
-        const myProxy = "https://ضع_رابط_الـ_worker_هنا.workers.dev/?url=";
+<script>
+    const video = document.getElementById('video');
+    const loading = document.getElementById('loading');
+    const status = document.getElementById('status');
 
-        function start() {
-            const params = new URLSearchParams(window.location.search);
-            let rawUrl = params.get('url') ? atob(params.get('url')) : '';
+    // ضع هنا رابط الـ Worker الذي أنشأته أنت
+    const myWorker = "https://red-snowflake-3bb2.bouhammouamira.workers.dev/?url=";
 
-            if (rawUrl) {
-                msg.style.display = 'block';
-                // دمج الرابط المدفوع مع البروكسي الخاص بك
-                const finalUrl = myProxy + encodeURIComponent(rawUrl);
-
-                if (Hls.isSupported()) {
-                    const hls = new Hls();
-                    hls.loadSource(finalUrl);
-                    hls.attachMedia(v);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        msg.style.display = 'none';
-                        v.play();
-                    });
-                    hls.on(Hls.Events.ERROR, () => {
-                        msg.innerText = "خطأ: السيرفر المدفوع يرفض الاتصال، تأكد من الـ Worker";
-                    });
-                } else {
-                    v.src = finalUrl;
-                }
-            }
+    function startStreaming() {
+        const params = new URLSearchParams(window.location.search);
+        let encodedUrl = params.get('url'); // الرابط المشفر بـ Base64 القادم من index.html
+        
+        if (!encodedUrl) {
+            status.innerText = "خطأ: لم يتم العثور على رابط القناة";
+            return;
         }
-        start();
-    </script>
+
+        let rawUrl = atob(encodedUrl); // فك التشفير للحصول على رابط http الأصلي
+        
+        // دمج الرابط الأصلي مع البروكسي الخاص بك
+        const finalProxyUrl = myWorker + encodeURIComponent(rawUrl);
+
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                xhrSetup: function(xhr) {
+                    xhr.withCredentials = false;
+                }
+            });
+            
+            hls.loadSource(finalProxyUrl);
+            hls.attachMedia(video);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                loading.style.display = 'none';
+                status.style.display = 'none';
+                video.play();
+            });
+
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    status.innerText = "تعذر تشغيل القناة. تأكد أن الرابط المدفوع لا يزال يعمل.";
+                    console.error(data);
+                }
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // لأجهزة آيفون وسفاري
+            video.src = finalProxyUrl;
+        }
+    }
+
+    startStreaming();
+</script>
 </body>
 </html>

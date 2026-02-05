@@ -1,0 +1,65 @@
+{
+  "categories": [
+    {
+      "id": "bein_sports",
+      "name": "beIN Sports"
+    },
+    {
+      "id": "maroc_channels",
+      "name": "القنوات المغربية"
+    },
+    {
+      "id": "arabic_ar",
+      "name": "ARABIC Sports"
+    },
+    {
+      "id": "tamaniya",
+      "name": "Tamanyat"
+    }
+  ],
+  "channels": [
+    { "category": "bein_sports", "name": "beIN SPORTS 1", "logo": "bein/bein1.png", "url": "https://static-cse.canva.com/video/914576/stock-videos.mp4" },
+    { "category": "bein_sports", "name": "beIN SPORTS 2", "logo": "bein/bein2.png", "url": "http://app.upsdo.me:8080/live/PCCQTZPXVCEG/041212071179/93914.ts" },
+    { "category": "bein_sports", "name": "beIN SPORTS 3", "logo": "bein/bein3.png", "url": "https://example.com/bein3" },
+    { "category": "bein_sports", "name": "beIN SPORTS 4", "logo": "bein/bein4.png", "url": "https://example.com/bein4" },
+    { "category": "bein_sports", "name": "beIN SPORTS 5", "logo": "bein/bein5.png", "url": "https://example.com/bein5" },
+    { "category": "bein_sports", "name": "beIN SPORTS 6", "logo": "bein/bein6.png", "url": "https://example.com/bein6" },
+    { "category": "bein_sports", "name": "beIN SPORTS 7", "logo": "bein/bein7.png", "url": "https://example.com/bein7" },
+    { "category": "bein_sports", "name": "beIN SPORTS 8", "logo": "bein/bein8.png", "url": "https://example.com/bein8" },
+    { "category": "bein_sports", "name": "beIN SPORTS 9", "logo": "bein/bein9.png", "url": "https://example.com/bein9" },
+    { "category": "bein_sports", "name": "beIN SPORTS", "logo": "bein/bein.png", "url": "https://example.com/bein10" },
+    { "category": "bein_sports", "name": "beIN NEWS", "logo": "bein/bein_news.png", "url": "https://example.com/bein_news" },
+    { "category": "bein_sports", "name": "beIN 4K", "logo": "bein/bein4k.png", "url": "https://example.com/bein4k" },
+    
+    { "category": "maroc_channels", "name": "Al Aoula HD", "logo": "maroc/1m.png", "url": "http://example.com/live1.m3u8" },
+    { "category": "maroc_channels", "name": "2M Maroc", "logo": "maroc/2m.png", "url": "http://185.223.214.11/live/play/TlZJdmMzVXlZM1ZqYkhWaVZrdHlLMjFWZG1kSVRHeHhVMFl4UnpCYU0yMUxTSHBhZVZKRmVFZHVjejA9/8192" },
+    { "category": "maroc_channels", "name": "Arryadia HD", "logo": "maroc/3m.png", "url": "https://example.com/arryadia" },
+    { "category": "maroc_channels", "name": "Athaqafia HD", "logo": "maroc/4m.png", "url": "https://example.com/athaqafia" },
+    { "category": "maroc_channels", "name": "Al Maghribia HD", "logo": "maroc/5m.png", "url": "https://example.com/al-maghribia" },
+    { "category": "maroc_channels", "name": "Assadissa HD", "logo": "maroc/6m.png", "url": "https://example.com/assadissa" },
+    { "category": "maroc_channels", "name": "Aflam TV HD", "logo": "maroc/aflam.png", "url": "https://example.com/aflam" },
+    { "category": "maroc_channels", "name": "Tamazight TV", "logo": "maroc/8m.png", "url": "https://example.com/tamazight" },
+    { "category": "maroc_channels", "name": "Laâyoune TV HD", "logo": "maroc/Laayoune.png", "url": "https://example.com/laayoune" },
+    { "category": "maroc_channels", "name": "Medi 1 TV HD", "logo": "maroc/medi1.png", "url": "https://example.com/medi1" },
+    { "category": "maroc_channels", "name": "M24 Maroc HD", "logo": "maroc/m24.png", "url": "https://example.com/m24" },
+    { "category": "maroc_channels", "name": "Télé Maroc HD", "logo": "maroc/telemaroc.png", "url": "https://example.com/telemaroc" },
+    { "category": "maroc_channels", "name": "Chada TV HD", "logo": "maroc/chada.png", "url": "https://example.com/chada" },
+    { "category": "maroc_channels", "name": "MBC 5 HD", "logo": "maroc/mbc5.png", "url": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/manifest/video/1080p2400kbps/video.m3u8" },
+    { "category": "maroc_channels", "name": "Arryadia TNT HD", "logo": "maroc/3m.png", "url": "https://example.com/arryadia-tnt" },
+    { "category": "maroc_channels", "name": "Arryadia SD", "logo": "maroc/3m.png", "url": "https://example.com/arryadia-sd" }
+  ],
+  "matches": [
+    {
+      "team1": "ريال مدريد",
+      "team2": "برشلونة",
+      "time": "21:00",
+      "league": "الدوري الإسباني"
+    },
+    {
+      "team1": "مانشستر سيتي",
+      "team2": "ليفربول",
+      "time": "18:30",
+      "league": "الدوري الإنجليزي"
+    }
+  ]
+}

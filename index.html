@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart IPTV Gold - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-color: #0d1117; --header-bg: #161b22; --accent: #ffcc00; --text-color: #ffffff; --card-bg: #ffffff; --danger: #ff4d4d; }
+        .light-mode { --bg-color: #f0f2f5; --header-bg: #ffffff; --text-color: #1a1a1a; --card-bg: #ffffff; }
+        * { -webkit-user-select: none; user-select: none; box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        .main-header { background: var(--header-bg); height: 65px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1000; }
+        .app-logo { font-size: 1.3rem; font-weight: 900; color: var(--accent); }
+        .icon-btn { background: rgba(255,255,255,0.1); border: none; color: var(--text-color); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+        #searchWrapper { display: none; padding: 10px 15px; background: var(--header-bg); border-bottom: 2px solid var(--accent); }
+        .search-input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg-color); color: var(--text-color); outline: none; }
+
+        .categories-nav { background: var(--header-bg); display: flex; gap: 10px; padding: 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .categories-nav::-webkit-scrollbar { display: none; }
+        .cat-item { padding: 10px 22px; border-radius: 25px; background: rgba(128,128,128,0.15); cursor: pointer; font-weight: bold; transition: 0.3s; color: var(--text-color); }
+        .cat-item.active { background: var(--accent); color: #000; }
+
+        .content-scroll { flex: 1; overflow-y: auto; padding: 15px; }
+        .channels-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+        @media (min-width: 768px) { .channels-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+
+        .channel-card { background: var(--card-bg); border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; transition: 0.3s; border-bottom: 4px solid var(--accent); position: relative; }
+        .fav-indicator { position: absolute; top: 5px; left: 5px; color: #ccc; font-size: 0.9rem; }
+        .fav-indicator.active { color: var(--danger); }
+        .channel-card img { width: 100%; height: 55px; object-fit: contain; }
+        .channel-card p { color: #1a1a1a; margin: 10px 0 0; font-size: 9px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .matches-list { display: flex; flex-direction: column; gap: 12px; }
+        .match-box { background: var(--header-bg); border-radius: 12px; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-right: 5px solid var(--accent); }
+        
+        .drawer { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: var(--header-bg); z-index: 2000; transition: 0.4s; padding: 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; }
+        .drawer.active { right: 0; }
+        .drawer-item { padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: bold; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1500; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <header class="main-header">
+        <div class="header-right">
+            <button class="icon-btn" onclick="toggleDrawer()"><i class="fas fa-bars"></i></button>
+            <div class="app-logo">SMART IPTV</div>
+        </div>
+        <div class="header-left">
+            <button class="icon-btn" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
+        </div>
+    </header>
+
+    <div id="searchWrapper">
+        <input type="text" id="searchInput" class="search-input" placeholder="بحث عن قناة..." oninput="doSearch()">
+    </div>
+
+    <nav class="categories-nav" id="catNav"></nav>
+
+    <main class="content-scroll">
+        <div class="channels-grid" id="chanGrid"></div>
+    </main>
+
+    <div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
+    <div class="drawer" id="drawer">
+        <h2 style="color:var(--accent)">القائمة</h2>
+        <div class="drawer-item" onclick="showFavorites()"><i class="fas fa-heart"></i> المفضلة</div>
+        <div class="drawer-item" onclick="showMatches()"><i class="fas fa-calendar-alt"></i> المباريات</div>
+        <div class="drawer-item" onclick="toggleTheme()"><i class="fas fa-moon"></i> الوضع الليلي</div>
+    </div>
+
+    <script>
+        document.onkeydown = (e) => { if (e.keyCode == 123 || (e.ctrlKey && e.keyCode == 85)) return false; };
+
+        let dataStore = { categories: [], channels: [], matches: [] };
+        let favorites = JSON.parse(localStorage.getItem('my_iptv_favs')) || [];
+
+        async function loadApp() {
+            try {
+                const response = await fetch('data.json');
+                dataStore = await response.json();
+                renderUI();
+            } catch (err) { console.error("Error loading JSON"); }
+        }
+
+        function renderUI() {
+            const nav = document.getElementById('catNav');
+            nav.innerHTML = dataStore.categories.map((c, i) => `
+                <div class="cat-item ${i===0?'active':''}" onclick="filterByCat('${c.id}', this)">${c.name}</div>
+            `).join('');
+            if(dataStore.categories.length) filterByCat(dataStore.categories[0].id);
+        }
+
+        function filterByCat(id, element) {
+            updateNav(element);
+            displayChannels(dataStore.channels.filter(ch => ch.category === id));
+        }
+
+        function displayChannels(list) {
+            const grid = document.getElementById('chanGrid');
+            grid.innerHTML = list.map(ch => {
+                const isFav = favorites.includes(ch.name) ? 'active' : '';
+                return `
+                <div class="channel-card" onclick="goToPlayer('${ch.url}', '${ch.name}')">
+                    <div class="fav-indicator ${isFav}" onclick="toggleFav(event, '${ch.name}')"><i class="fas fa-heart"></i></div>
+                    <img src="${ch.logo}" onerror="this.src='https://via.placeholder.com/150x80?text=TV'">
+                    <p>${ch.name}</p>
+                </div>`;
+            }).join('');
+        }
+
+        // الوظيفة الأساسية للتحويل للمشغل
+        function goToPlayer(url, name) {
+            const encodedUrl = btoa(url); // تشفير الرابط للحماية الأساسية
+            window.location.href = `player.html?url=${encodedUrl}&name=${encodeURIComponent(name)}`;
+        }
+
+        function showMatches() {
+            toggleDrawer();
+            const grid = document.getElementById('chanGrid');
+            grid.innerHTML = `<div class="matches-list" style="grid-column: 1 / -1;">` + 
+                dataStore.matches.map(m => `
+                    <div class="match-box">
+                        <div style="flex:1; text-align:center;">${m.team1}</div>
+                        <div style="flex:1; text-align:center;"><span style="background:var(--accent); color:#000; padding:3px 8px; border-radius:5px;">${m.time}</span></div>
+                        <div style="flex:1; text-align:center;">${m.team2}</div>
+                    </div>
+                `).join('') + `</div>`;
+        }
+
+        function showFavorites() { toggleDrawer(); displayChannels(dataStore.channels.filter(ch => favorites.includes(ch.name))); }
+        function toggleFav(e, name) { e.stopPropagation(); if (favorites.includes(name)) favorites = favorites.filter(n => n !== name); else favorites.push(name); localStorage.setItem('my_iptv_favs', JSON.stringify(favorites)); e.currentTarget.classList.toggle('active'); }
+        function updateNav(el) { if(el){ document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); } }
+        function toggleSearch() { const s = document.getElementById('searchWrapper'); s.style.display = (s.style.display === 'block') ? 'none' : 'block'; }
+        function doSearch() { const q = document.getElementById('searchInput').value.toLowerCase(); displayChannels(dataStore.channels.filter(ch => ch.name.toLowerCase().includes(q))); }
+        function toggleDrawer() { document.getElementById('drawer').classList.toggle('active'); document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('active') ? 'block' : 'none'; }
+        function toggleTheme() { document.body.classList.toggle('light-mode'); toggleDrawer(); }
+
+        loadApp();
+    </script>
+</body>
+</html>

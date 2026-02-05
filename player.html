@@ -1,94 +1,93 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gemini Ultra Player</title>
-    
+    <title>beIN SPORTS Player</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
-        .p-box { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .player-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: contain; }
-        
-        .loader { position: absolute; width: 50px; height: 50px; border: 4px solid #333; border-top-color: #00d2ff; border-radius: 50%; animation: spin 1s infinite linear; z-index: 10; }
+        .loader { position: absolute; width: 50px; height: 50px; border: 5px solid #333; border-top-color: #00d2ff; border-radius: 50%; animation: spin 1s infinite linear; z-index: 10; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .ui { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0,0,0,0.4); opacity: 0; transition: 0.3s; }
+        .ui { position: absolute; inset: 0; z-index: 20; background: rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; opacity: 0; transition: 0.3s; }
         .active-ui .ui { opacity: 1; }
-        .controls { padding: 20px; display: flex; justify-content: center; gap: 40px; }
-        .btn { background: none; border: none; color: white; font-size: 2.5rem; cursor: pointer; }
+        .btn { background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="p-box" id="pBox">
-        <div class="loader" id="loading"></div>
-        <video id="v" playsinline crossorigin="anonymous" autoplay></video>
+<div class="player-wrapper" id="pBox">
+    <div class="loader" id="loading"></div>
+    <video id="video" playsinline crossorigin="anonymous" autoplay></video>
 
-        <div class="ui">
-            <div style="padding: 20px; text-align: center; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);">
-                قناة مدفوعة مشفرة - Xtream Line
-            </div>
-            
-            <div class="controls">
-                <button class="btn" onclick="v.currentTime -= 10"><i class="fas fa-undo"></i></button>
-                <button class="btn" style="font-size: 4rem;" onclick="toggleP()"><i id="pIcon" class="fas fa-pause"></i></button>
-                <button class="btn" onclick="v.currentTime += 10"><i class="fas fa-redo"></i></button>
-            </div>
-
-            <div style="padding: 20px; display: flex; justify-content: space-around;">
-                <button class="btn" style="font-size: 1.2rem;" onclick="v.style.objectFit='fill'">ملء الشاشة <i class="fas fa-expand"></i></button>
-                <button class="btn" style="font-size: 1.2rem;" onclick="location.reload()">تحديث <i class="fas fa-sync"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const v = document.getElementById('v');
-        const pBox = document.getElementById('pBox');
+    <div class="ui">
+        <header style="padding: 20px; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); text-align: right;">
+            <button class="btn" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+            <span id="vTitle" style="margin-right: 15px;">beIN SPORTS 2</span>
+        </header>
         
-        // هام جداً: ضع هنا رابط الـ Cloudflare Worker الذي أنشأته
-        const myProxy = "https://red-snowflake-3bb2.bouhammouamira.workers.dev/?url=";
+        <div style="display: flex; justify-content: center; gap: 50px;">
+            <button class="btn" style="font-size: 4rem;" onclick="togglePlay()"><i id="pIcon" class="fas fa-pause"></i></button>
+        </div>
 
-        function playNow() {
-            const params = new URLSearchParams(window.location.search);
-            let targetUrl = params.get('url') ? atob(params.get('url')) : '';
+        <footer style="padding: 20px; display: flex; justify-content: space-between; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+            <button class="btn" style="font-size: 1.2rem;" onclick="video.requestFullscreen()">ملء الشاشة <i class="fas fa-expand"></i></button>
+            <button class="btn" style="font-size: 1.2rem;" onclick="location.reload()">تحديث <i class="fas fa-sync"></i></button>
+        </footer>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const pBox = document.getElementById('pBox');
+    const loading = document.getElementById('loading');
+
+    function init() {
+        const params = new URLSearchParams(window.location.search);
+        let rawUrl = params.get('url') ? atob(params.get('url')) : '';
+        document.getElementById('vTitle').innerText = params.get('name') || 'البث المباشر';
+
+        if (!rawUrl) return;
+
+        // الحل السحري لتجاوز حظر GitHub (تحويل HTTP إلى HTTPS وفك الحماية)
+        // هذا البروكسي سيقوم بإضافة User-Agent الأندرويد تلقائياً لسيرفر beIN
+        const finalUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawUrl);
+
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 90
+            });
+            hls.loadSource(finalUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                loading.style.display = 'none';
+                video.play().catch(() => pBox.classList.add('active-ui'));
+            });
             
-            if (!targetUrl) return;
-
-            // تمرير الرابط عبر البروكسي الخاص بك لكسر التشفير
-            const finalUrl = myProxy + encodeURIComponent(targetUrl);
-
-            if (Hls.isSupported()) {
-                const hls = new Hls({
-                    xhrSetup: (xhr) => {
-                        // هنا يتم إرسال الهوية التي تجعل السيرفر يفتح البث
-                        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                    }
-                });
-                hls.loadSource(finalUrl);
-                hls.attachMedia(v);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    document.getElementById('loading').style.display = 'none';
-                    v.play();
-                });
-            } else {
-                v.src = finalUrl;
-            }
+            // في حال فشل البروكسي الأول، نجرب بروكسي بديل تلقائياً
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.details === 'manifestLoadError') {
+                    hls.loadSource("https://corsproxy.io/?" + encodeURIComponent(rawUrl));
+                }
+            });
+        } else {
+            video.src = finalUrl;
         }
+    }
 
-        function toggleP() {
-            if (v.paused) { v.play(); document.getElementById('pIcon').className = 'fas fa-pause'; }
-            else { v.pause(); document.getElementById('pIcon').className = 'fas fa-play'; }
-        }
+    function togglePlay() {
+        if (video.paused) { video.play(); document.getElementById('pIcon').className = 'fas fa-pause'; }
+        else { video.pause(); document.getElementById('pIcon').className = 'fas fa-play'; }
+    }
 
-        pBox.onclick = () => pBox.classList.toggle('active-ui');
+    pBox.onclick = (e) => { if(e.target.tagName !== 'BUTTON') pBox.classList.toggle('active-ui'); };
 
-        playNow();
-        pBox.classList.add('active-ui');
-    </script>
+    init();
+</script>
 </body>
 </html>
